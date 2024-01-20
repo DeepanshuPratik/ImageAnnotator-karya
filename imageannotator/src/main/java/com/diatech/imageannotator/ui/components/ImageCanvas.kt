@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import com.diatech.imageannotator.DrawMode
 import com.diatech.imageannotator.ImageAnnotator
@@ -53,6 +54,8 @@ fun ImageAnnotation(
     var scale by remember { mutableStateOf(1f) }
     var zoomOffset by remember { mutableStateOf(Offset.Zero) }
     var bmp by remember { mutableStateOf<Bitmap?>(null) }
+    var height = 0f
+    var width = 0f
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -80,6 +83,10 @@ fun ImageAnnotation(
             ShowBitmap(
                 bitmap = image,
                 modifier = Modifier
+                    .onGloballyPositioned {
+                        height = it.size.height.toFloat()
+                        width = it.size.width.toFloat()
+                    }
                     .fillMaxWidth()
                     .graphicsLayer {
                         scaleX = scale
@@ -144,7 +151,7 @@ fun ImageAnnotation(
             disabledDrawingResourceId = disabledDrawingResourceId,
             polygonSides = polygonSides,
             onSubmit = {
-                bmp = getDrawingBitmap(image.width, image.height, drawing.strokes)
+                bmp = getDrawingBitmap(image.width, image.height, drawing.strokes, height, width)
                 bmp?.let { onDone(it) }
             }
         )

@@ -5,7 +5,7 @@ import android.graphics.Paint
 import com.diatech.imageannotator.DrawingStroke
 import com.diatech.imageannotator.drawQuadraticBezier
 
-fun getDrawingBitmap(width: Int, height: Int, strokes: List<DrawingStroke>): Bitmap {
+fun getDrawingBitmap(width: Int, height: Int, strokes: List<DrawingStroke>, orgH: Float, orgW: Float): Bitmap {
     val paint = Paint().apply {
         setARGB(255, 255, 0, 0)
         strokeWidth = 4f
@@ -15,8 +15,8 @@ fun getDrawingBitmap(width: Int, height: Int, strokes: List<DrawingStroke>): Bit
     }
     val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     android.graphics.Canvas(bmp).apply {
-        val scaleX = width.toFloat() / 1280f
-        val scaleY = height.toFloat() / 959f
+        val scaleX = width.toFloat() / orgW
+        val scaleY = height.toFloat() / orgH
         strokes.forEach { stroke ->
             when (stroke) {
                 is DrawingStroke.Circle -> {}

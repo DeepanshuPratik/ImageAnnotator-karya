@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ImageAnnotatorTheme {
-                val bitmap : Bitmap = BitmapFactory.decodeResource(resources, R.drawable.dark_sample)
+                val bitmap : Bitmap = BitmapFactory.decodeResource(resources, R.drawable.images)
                 var resultBitmap by remember{
                     mutableStateOf<Bitmap?>(null)
                 }//: Bitmap? = Bitmap.createBitmap(bitmap.width,bitmap.height, Bitmap.Config.ARGB_8888)
