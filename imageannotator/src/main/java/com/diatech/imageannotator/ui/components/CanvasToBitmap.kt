@@ -15,14 +15,14 @@ fun getDrawingBitmap(width: Int, height: Int, strokes: List<DrawingStroke>): Bit
     }
     val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     android.graphics.Canvas(bmp).apply {
-        val scaleX = width.toFloat()
-        val scaleY = height.toFloat()
+        val scaleX = width.toFloat() / 1280f
+        val scaleY = height.toFloat() / 959f
         strokes.forEach { stroke ->
             when (stroke) {
                 is DrawingStroke.Circle -> {}
                 is DrawingStroke.FreeHand -> {
                     val path = android.graphics.Path().apply {
-                        drawQuadraticBezier(stroke.points)
+                        drawQuadraticBezier(stroke.points,scaleX,scaleY)
                     }
                     drawPath(path, paint)
                 }

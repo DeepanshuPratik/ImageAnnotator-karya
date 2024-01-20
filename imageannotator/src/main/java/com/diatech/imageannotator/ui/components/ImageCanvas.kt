@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -80,41 +81,42 @@ fun ImageAnnotation(
                 bitmap = image,
                 modifier = Modifier
                     .fillMaxWidth()
-//                    .graphicsLayer {
-//                        scaleX = scale
-//                        scaleY = scale
-//                        translationX = zoomOffset.x
-//                        translationY = zoomOffset.y
-//                    }
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        translationX = zoomOffset.x
+                        translationY = zoomOffset.y
+                    }
                     .matchParentSize()
-//                    .transformable(state)
+                    .transformable(state)
             )
             if (drawing.drawMode.value != DrawMode.NONE) {
                 FreeHandCanvas(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(image.width.toFloat() / image.height.toFloat()),
-//                        .graphicsLayer {
-//                            scaleX = scale
-//                            scaleY = scale
-//                            translationX = zoomOffset.x
-//                            translationY = zoomOffset.y
-//                        }
-//                        .transformable(state),
+                        .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = zoomOffset.x
+                            translationY = zoomOffset.y
+                        }
+                        .transformable(state)
+                        .matchParentSize(),
                     drawing = drawing
                 )
             } else {
                 displayCanvas(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(image.width.toFloat() / image.height.toFloat()),
-//                        .graphicsLayer {
-//                            scaleX = scale
-//                            scaleY = scale
-//                            translationX = zoomOffset.x
-//                            translationY = zoomOffset.y
-//                        }
-//                        .transformable(state),
+                        .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = zoomOffset.x
+                            translationY = zoomOffset.y
+                        }
+                        .transformable(state),
                     drawing = drawing
                 )
             }
