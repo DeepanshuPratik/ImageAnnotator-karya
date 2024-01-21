@@ -26,17 +26,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ImageAnnotatorTheme {
-                val bitmap : Bitmap = BitmapFactory.decodeResource(resources, R.drawable.images)
+                val bitmap : Bitmap = BitmapFactory.decodeResource(resources, R.drawable.dark_sample)
                 var resultBitmap by remember{
                     mutableStateOf<Bitmap?>(null)
-                }//: Bitmap? = Bitmap.createBitmap(bitmap.width,bitmap.height, Bitmap.Config.ARGB_8888)
+                }
                 Column (
                     modifier = Modifier.fillMaxWidth().padding(16.dp)
                 ){
                     ImageAnnotation(
                         image = bitmap,
-                        wantCircle = true,
-                        wantPolygon = true,
+                        wantCircle = false,
+                        wantPolygon = false,
                         wantDisabledDrawing = true,
                         wantFreeHand = true,
                         polygonResourceId = R.drawable.ic_polygon,
@@ -51,7 +51,6 @@ class MainActivity : ComponentActivity() {
                         ShowBitmap(
                             bitmap = it,
                             modifier = Modifier
-                                //.fillMaxWidth()
                                 .border(2.dp , Color.Red)
                                 .aspectRatio(bitmap.width.toFloat()/bitmap.height.toFloat())
                         )

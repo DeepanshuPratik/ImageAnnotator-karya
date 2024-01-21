@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,14 +49,14 @@ fun ImageAnnotation(
     onDone : (Bitmap) -> Unit
 ) {
     val drawing = rememberDrawing()
-    val boxHeightPx by remember { mutableStateOf(0f) }
-    val offset by remember { mutableStateOf(boxHeightPx) }
-    val offsetAnim = animateFloatAsState(targetValue = offset)
-    var scale by remember { mutableStateOf(1f) }
+    val boxHeightPx by remember { mutableFloatStateOf(0f) }
+    val offset by remember { mutableFloatStateOf(boxHeightPx) }
+    val offsetAnim = animateFloatAsState(targetValue = offset, label = "")
+    var scale by remember { mutableFloatStateOf(1f) }
     var zoomOffset by remember { mutableStateOf(Offset.Zero) }
     var bmp by remember { mutableStateOf<Bitmap?>(null) }
-    var height = 0f
-    var width = 0f
+    var viewHeight = 0f
+    var viewWidth = 0f
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -66,7 +67,7 @@ fun ImageAnnotation(
                 .aspectRatio(image.width.toFloat() / image.height.toFloat())
                 .graphicsLayer { clip = true }
         ) {
-            val state = rememberTransformableState { zoomChange, panChange, rotationChange ->
+            val state = rememberTransformableState { zoomChange, panChange, _ ->
                 scale = (scale * zoomChange).coerceIn(1f, 5f)
 
                 val extraWidth = (scale - 1) * constraints.maxWidth
@@ -84,8 +85,8 @@ fun ImageAnnotation(
                 bitmap = image,
                 modifier = Modifier
                     .onGloballyPositioned {
-                        height = it.size.height.toFloat()
-                        width = it.size.width.toFloat()
+                        viewHeight = it.size.height.toFloat()
+                        viewWidth = it.size.width.toFloat()
                     }
                     .fillMaxWidth()
                     .graphicsLayer {
@@ -151,7 +152,7 @@ fun ImageAnnotation(
             disabledDrawingResourceId = disabledDrawingResourceId,
             polygonSides = polygonSides,
             onSubmit = {
-                bmp = getDrawingBitmap(image.width, image.height, drawing.strokes, height, width)
+                bmp = getDrawingBitmap(image.width, image.height, drawing.strokes, viewHeight, viewWidth)
                 bmp?.let { onDone(it) }
             }
         )
