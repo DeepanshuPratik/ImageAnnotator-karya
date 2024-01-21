@@ -1,15 +1,11 @@
 package com.diatech.imageannotator
 
-import android.graphics.Bitmap
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
 class ImageAnnotator
 constructor(
@@ -96,7 +92,7 @@ constructor(
         _redoList.clear()
     }
 
-    fun setColor(color: androidx.compose.ui.graphics.Color) = run { this._color = color }
+    fun setColor(color: Color) = run { this._color = color }
     fun setWidth(width: Float) = run { this._width = width }
     fun setAlpha(alpha: Float) = run { this._alpha = alpha }
     fun setDrawMode(drawMode: DrawMode) = run { this._drawMode.value = drawMode }
