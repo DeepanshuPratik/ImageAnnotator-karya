@@ -1,6 +1,7 @@
 package com.diatech.imageannotator.ui.components
 
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,6 +39,7 @@ import com.diatech.imageannotator.ImageAnnotator
 @Composable
 fun ImageAnnotation(
     image: Bitmap,
+    drawable: Drawable,   // Image Drawable
     wantFreeHand: Boolean,
     freeHandResourceId: Int,
     wantCircle: Boolean,
@@ -46,7 +48,7 @@ fun ImageAnnotation(
     wantDisabledDrawing: Boolean,
     disabledDrawingResourceId: Int,
     polygonSides: Int,
-    onDone : (Bitmap) -> Unit
+    onDone : (Pair<Bitmap,Bitmap>) -> Unit
 ) {
     val drawing = rememberDrawing()
     val boxHeightPx by remember { mutableFloatStateOf(0f) }
@@ -54,7 +56,6 @@ fun ImageAnnotation(
     val offsetAnim = animateFloatAsState(targetValue = offset, label = "")
     var scale by remember { mutableFloatStateOf(1f) }
     var zoomOffset by remember { mutableStateOf(Offset.Zero) }
-    var bmp by remember { mutableStateOf<Bitmap?>(null) }
     var viewHeight = 0f
     var viewWidth = 0f
 
@@ -152,8 +153,8 @@ fun ImageAnnotation(
             disabledDrawingResourceId = disabledDrawingResourceId,
             polygonSides = polygonSides,
             onSubmit = {
-                bmp = getDrawingBitmap(image.width, image.height, drawing.strokes, viewHeight, viewWidth)
-                bmp?.let { onDone(it) }
+                val pair = getDrawingBitmap(drawable,image.width, image.height, drawing.strokes, viewHeight, viewWidth)
+                onDone(pair)
             }
         )
     }
