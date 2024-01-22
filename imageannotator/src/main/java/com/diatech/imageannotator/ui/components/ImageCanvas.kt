@@ -137,7 +137,6 @@ fun ImageAnnotation(
                     translationY = offsetAnim.value
                 }
                 .fillMaxWidth()
-                .border(2.dp , Color.Cyan)
                 .background(
                     //MaterialTheme.colorScheme.primaryContainer,
                     Color.Transparent,

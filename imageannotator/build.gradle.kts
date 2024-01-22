@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.de.undercouch.gradle.tasks.download.org.apache.commons.logging.LogFactory.release
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
@@ -58,4 +60,18 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:$compose_version")
     debugImplementation("androidx.compose.ui:ui-test-manifest:$compose_version")
 
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components.findByName("android"))
+
+                groupId = "com.github.deepanshupratik"
+                artifactId = "imageannotator"
+                version = "1.0.0"
+            }
+        }
+    }
 }

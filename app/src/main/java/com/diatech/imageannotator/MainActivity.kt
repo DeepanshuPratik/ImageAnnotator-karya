@@ -32,14 +32,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ImageAnnotatorTheme {
-                val bitmap : Bitmap = BitmapFactory.decodeResource(resources, R.drawable.dark_sample)
+                val bitmap : Bitmap = BitmapFactory.decodeResource(resources, R.drawable.sample)
                 var resultBitmap by remember{
                     mutableStateOf<Bitmap?>(null)
                 }
                 var resultBitmapWithoutImage by remember{
                     mutableStateOf<Bitmap?>(null)
                 }
-                val drawableResourceId = R.drawable.dark_sample
+                val drawableResourceId = R.drawable.sample
                 val drawable: Drawable? = ContextCompat.getDrawable(LocalContext.current, drawableResourceId)
                 Column (
                     modifier = Modifier
