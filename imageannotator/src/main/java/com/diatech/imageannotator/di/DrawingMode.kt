@@ -19,35 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.diatech.imageannotator.ui.components
+package com.diatech.imageannotator.di
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.IconButton
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import com.diatech.imageannotator.di.DrawMode
-
-@Composable
-fun DrawModeButton(
-    drawMode: DrawMode,
-    selected: DrawMode,
-    onSelect: (DrawMode) -> Unit,
-    content: @Composable () -> Unit
-) {
-    IconButton(
-        modifier = Modifier
-            .padding(4.dp)
-            .background(
-                color = if (selected::class.java == drawMode::class.java) Color(0XFF4EBF87) else Color.Transparent,
-                shape = CircleShape
-            ),
-        onClick = { onSelect(drawMode) }
-    ) { content() }
+sealed class DrawMode {
+    object FREE_HAND : DrawMode()
+    object CIRCLE : DrawMode()
+    class POLYGON(val sides: Int) : DrawMode()
+    object NONE : DrawMode()
 }
-
-
-

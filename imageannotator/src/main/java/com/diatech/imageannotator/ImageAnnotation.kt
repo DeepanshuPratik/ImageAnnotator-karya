@@ -1,26 +1,48 @@
-package com.diatech.imageannotator.ui.components
+/**
+ * Copyright (c) 2024 DAIA Pvt Ltd
+ * Author : Deepanshu Pratik <deepanshu.pratik@gmail.com>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package com.diatech.imageannotator
 
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,25 +52,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.diatech.imageannotator.DrawMode
-import com.diatech.imageannotator.ImageAnnotator
+import com.diatech.imageannotator.di.DrawMode
+import com.diatech.imageannotator.di.DrawingStroke
+import com.diatech.imageannotator.ui.components.DrawModeSelector
+import com.diatech.imageannotator.ui.components.FreeHandCanvas
+import com.diatech.imageannotator.ui.screens.DisplayCanvas
+import com.diatech.imageannotator.helper.getDrawingBitmap
+import com.diatech.imageannotator.ui.components.ActionsBar
+import com.diatech.imageannotator.ui.components.rememberDrawing
 
 @Composable
 fun ImageAnnotation(
     image: Bitmap,
-    drawable: Drawable,   // Image Drawable
-    wantFreeHand: Boolean,
+    enableFreeHand: Boolean,
     freeHandResourceId: Int,
-    wantCircle: Boolean,
-    wantPolygon: Boolean,
+    enableCircle: Boolean,
+    enablePolygon: Boolean,
     polygonResourceId: Int,
-    wantDisabledDrawing: Boolean,
+    enableDisabledDrawing: Boolean,
     disabledDrawingResourceId: Int,
     polygonSides: Int,
-    onDone : (Pair<Bitmap,Bitmap>) -> Unit
+    onDone: (Pair<ImageAnnotator, Bitmap>) -> Unit
 ) {
     val drawing = rememberDrawing()
     val boxHeightPx by remember { mutableFloatStateOf(0f) }
@@ -56,11 +85,15 @@ fun ImageAnnotation(
     val offsetAnim = animateFloatAsState(targetValue = offset, label = "")
     var scale by remember { mutableFloatStateOf(1f) }
     var zoomOffset by remember { mutableStateOf(Offset.Zero) }
-    var viewHeight = 0f
-    var viewWidth = 0f
+    val viewHeight by drawing.originalHeight.collectAsState()
+    val viewWidth by drawing.originalWidth.collectAsState()
 
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         BoxWithConstraints(
             modifier = Modifier
@@ -79,15 +112,17 @@ fun ImageAnnotation(
 
                 zoomOffset = Offset(
                     x = (zoomOffset.x + scale * panChange.x).coerceIn(-maxX, maxX),
-                    y = (zoomOffset.y + scale * panChange.y).coerceIn(-maxY, maxY),
+                    y = (zoomOffset.y + scale * panChange.y).coerceIn(-maxY, maxY)
                 )
             }
-            ShowBitmap(
-                bitmap = image,
+            Image(
+                bitmap = image.asImageBitmap(),
                 modifier = Modifier
                     .onGloballyPositioned {
-                        viewHeight = it.size.height.toFloat()
-                        viewWidth = it.size.width.toFloat()
+                        drawing.updateOriginalDimensions(
+                            height = it.size.height.toFloat(),
+                            width = it.size.width.toFloat()
+                        )
                     }
                     .fillMaxWidth()
                     .graphicsLayer {
@@ -97,7 +132,8 @@ fun ImageAnnotation(
                         translationY = zoomOffset.y
                     }
                     .matchParentSize()
-                    .transformable(state)
+                    .transformable(state),
+                contentDescription = null
             )
             if (drawing.drawMode.value != DrawMode.NONE) {
                 FreeHandCanvas(
@@ -115,7 +151,7 @@ fun ImageAnnotation(
                     drawing = drawing
                 )
             } else {
-                displayCanvas(
+                DisplayCanvas(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(image.width.toFloat() / image.height.toFloat())
@@ -132,84 +168,44 @@ fun ImageAnnotation(
         }
         ActionsBar(
             modifier = Modifier
-                .align(Alignment.End)
+                .align(Alignment.CenterHorizontally)
                 .graphicsLayer {
                     translationY = offsetAnim.value
                 }
+                .padding(4.dp)
                 .fillMaxWidth()
                 .background(
-                    //MaterialTheme.colorScheme.primaryContainer,
+                    // MaterialTheme.colorScheme.primaryContainer,
                     Color.Transparent,
                     RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
                 ),
             drawing = drawing,
-            wantFreeHand = wantFreeHand,
-            wantPolygon = wantPolygon,
-            wantDisabledDrawing = wantDisabledDrawing,
-            wantCircle = wantCircle,
+            enableFreeHand = enableFreeHand,
+            enablePolygon = enablePolygon,
+            enableDisabledDrawing = enableDisabledDrawing,
+            enableCircle = enableCircle,
             polygonResourceId = polygonResourceId,
             freeHandResourceId = freeHandResourceId,
             disabledDrawingResourceId = disabledDrawingResourceId,
             polygonSides = polygonSides,
             onSubmit = {
-                val pair = getDrawingBitmap(drawable,image.width, image.height, drawing.strokes, viewHeight, viewWidth)
-                onDone(pair)
+                val bmp = getDrawingBitmap(image.width, image.height, drawing.strokes, viewHeight, viewWidth)
+                onDone(Pair(drawing, bmp))
             }
         )
     }
 }
 
-@Composable
-fun ActionsBar(
-    modifier: Modifier,
-    drawing: ImageAnnotator,
-    wantFreeHand: Boolean,
-    freeHandResourceId: Int,
-    wantCircle: Boolean,
-    wantPolygon: Boolean,
-    polygonResourceId: Int,
-    wantDisabledDrawing: Boolean,
-    disabledDrawingResourceId: Int,
-    polygonSides: Int,
-    onSubmit : () -> Unit
-) {
-    Column(
-        modifier = modifier
-    ) {
-        Row(Modifier.padding(8.dp)) {
-            IconButton(onClick = { drawing.clear() }) {
-                Icon(
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = "Clear"
-                )
-            }
-            IconButton(onClick = { drawing.undo() }) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Undo"
-                )
-            }
-            IconButton(onClick = { drawing.redo() }) {
-                Icon(
-                    imageVector = Icons.Default.ArrowForward,
-                    contentDescription = "Redo"
-                )
-            }
-            DrawModeSelector(
-                modifier = Modifier
-                    .weight(1f),
-                selected = drawing.drawMode.value,
-                onSelect = { drawing.setDrawMode(it) },
-                polygonSides = polygonSides,
-                wantCircle = wantCircle,
-                wantDisabledDrawing = wantDisabledDrawing,
-                wantFreeHand = wantFreeHand,
-                wantPolygon = wantPolygon,
-                freeHandResourceId = freeHandResourceId,
-                polygonResourceId = polygonResourceId,
-                disabledDrawingResourceId = disabledDrawingResourceId,
-                onSubmit = onSubmit
-            )
-        }
-    }
+// TODO() : helper functions
+fun overlayBitmaps(baseBitmap: Bitmap, overlayBitmap: Bitmap): Bitmap {
+    val resultBitmap = Bitmap.createBitmap(baseBitmap.width, baseBitmap.height, baseBitmap.config)
+    val canvas = Canvas(resultBitmap)
+
+    // Draw the base bitmap
+    canvas.drawBitmap(baseBitmap, 0f, 0f, null)
+
+    // Draw the overlay bitmap on top
+    canvas.drawBitmap(overlayBitmap, 0f, 0f, null)
+
+    return resultBitmap
 }
