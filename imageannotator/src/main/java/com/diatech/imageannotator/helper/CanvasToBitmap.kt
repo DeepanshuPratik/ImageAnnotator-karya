@@ -24,9 +24,9 @@ package com.diatech.imageannotator.helper
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.drawable.Drawable
 import androidx.compose.ui.geometry.Offset
-import com.diatech.imageannotator.di.DrawingStroke
+import androidx.compose.ui.graphics.Color
+import com.diatech.imageannotator.drawutils.DrawingStroke
 
 fun getDrawingBitmap(width: Int, height: Int, strokes: List<DrawingStroke>, orgH: Float, orgW: Float): Bitmap {
     val bmpWithoutImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
@@ -36,18 +36,18 @@ fun getDrawingBitmap(width: Int, height: Int, strokes: List<DrawingStroke>, orgH
 }
 
 fun drawAnnotation(canvas: android.graphics.Canvas, strokes: List<DrawingStroke>, orgH: Float, orgW: Float) {
-    val paint = Paint().apply {
-        setARGB(255, 255, 0, 0)
-        strokeWidth = 16f
-        style = Paint.Style.STROKE
-        strokeJoin = Paint.Join.ROUND
-        strokeCap = Paint.Cap.ROUND
-    }
     canvas.apply {
         val scaleX = width.toFloat() / orgW
         val scaleY = height.toFloat() / orgH
 
         strokes.forEach { stroke ->
+            val paint = Paint().apply {
+                setARGB(255, (stroke.color!!.red*255).toInt(), (stroke.color.green*255).toInt(), (stroke.color.blue*255).toInt())
+                strokeWidth = 16f
+                style = Paint.Style.STROKE
+                strokeJoin = Paint.Join.ROUND
+                strokeCap = Paint.Cap.ROUND
+            }
             when (stroke) {
                 is DrawingStroke.Circle -> {
                     val path = Path().apply {
@@ -78,4 +78,28 @@ fun drawAnnotation(canvas: android.graphics.Canvas, strokes: List<DrawingStroke>
             }
         }
     }
+}
+
+fun getBitmapFromOffsets(orgW: Float, orgH: Float,drawingStrokes: List<Pair<Color,List<Offset>>>): Bitmap{
+    val bmpWithoutImage = Bitmap.createBitmap(orgW.toInt(), orgH.toInt(), Bitmap.Config.ARGB_8888)
+    val canvasWithoutDrawable = android.graphics.Canvas(bmpWithoutImage)
+    canvasWithoutDrawable.apply {
+        val scaleX = width.toFloat() / orgW
+        val scaleY = height.toFloat() / orgH
+
+        drawingStrokes.forEach { strokes ->
+            val paint = Paint().apply {
+                setARGB(255, (strokes.first.red*255).toInt(), (strokes.first.green*255).toInt(), (strokes.first.blue*255).toInt())
+                strokeWidth = 8f
+                style = Paint.Style.STROKE
+                strokeJoin = Paint.Join.ROUND
+                strokeCap = Paint.Cap.ROUND
+            }
+            val path = Path().apply {
+                drawQuadraticBezier(strokes.second, scaleX, scaleY)
+            }
+            drawPath(path, paint)
+        }
+    }
+    return bmpWithoutImage
 }
