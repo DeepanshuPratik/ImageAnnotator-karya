@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +46,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.diatech.imageannotator.helper.getBitmapFromOffsets
 import com.diatech.imageannotator.helper.saveBitmapToGallery
 import com.diatech.imageannotator.ui.theme.ImageAnnotatorTheme
 
@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ImageAnnotatorTheme {
                 val bitmap : Bitmap = BitmapFactory.decodeResource(resources, R.drawable.sample)
-                var resultBitmap by remember{
+                val resultBitmap by remember{
                     mutableStateOf<Bitmap?>(null)
                 }
                 val context = LocalContext.current
@@ -68,8 +68,8 @@ class MainActivity : ComponentActivity() {
                 val drawable: Drawable? = ContextCompat.getDrawable(LocalContext.current, drawableResourceId)
                 Column (
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(16.dp),
+                        .fillMaxHeight(),
+//                        .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ){
                     if (drawable != null) {
@@ -88,8 +88,20 @@ class MainActivity : ComponentActivity() {
                                 drawing = it.first
                                 saveBitmapToGallery(context, resultBitmapWithoutImage!!,"SampleImage","image/png" )
 //                                saveBitmapToGallery(context, resultBitmap!!,"SampleImageWithBackground","image/png" )
-                                val overlayImage = overlayBitmaps(bitmap, resultBitmapWithoutImage!!)
-                                saveBitmapToGallery(context, overlayImage,"newBitmap","image/png" )
+//                                val overlayImage = overlayBitmaps(bitmap, resultBitmapWithoutImage!!)
+//                                saveBitmapToGallery(context, overlayImage,"newBitmap","image/png" )
+                                /**
+                                *  Creating Image through offsets
+                                *
+                                **/
+                                val offsets = drawing!!.getFreeHandOffset()
+                                val tempBitmap = getBitmapFromOffsets(
+                                    orgH = offsets.second.first,
+                                    orgW = offsets.second.second,
+                                    drawingStrokes = offsets.first
+                                )
+                                val overlayImageOffset = overlayBitmaps(bitmap, tempBitmap)
+                                saveBitmapToGallery(context, overlayImageOffset, "CreatedImageFromOffset","image/png")
                             },
                         )
                     }
@@ -108,8 +120,8 @@ class MainActivity : ComponentActivity() {
                             Image(
                                 bitmap = it.asImageBitmap(),
                                 modifier = Modifier
-                                    .border(2.dp , Color.Red)
-                                    .aspectRatio(bitmap.width.toFloat()/bitmap.height.toFloat()),
+                                    .border(2.dp, Color.Red)
+                                    .aspectRatio(bitmap.width.toFloat() / bitmap.height.toFloat()),
                                 contentDescription = null,
                             )
                         }

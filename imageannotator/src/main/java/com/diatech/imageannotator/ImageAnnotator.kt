@@ -28,11 +28,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import com.diatech.imageannotator.di.DrawMode
-import com.diatech.imageannotator.di.DrawingStroke
-import com.diatech.imageannotator.di.calculateDistance
-import com.diatech.imageannotator.di.calculateMidPoint
-import com.diatech.imageannotator.di.getVertices
+import com.diatech.imageannotator.drawutils.DrawMode
+import com.diatech.imageannotator.drawutils.DrawingStroke
+import com.diatech.imageannotator.drawutils.calculateDistance
+import com.diatech.imageannotator.drawutils.calculateMidPoint
+import com.diatech.imageannotator.drawutils.getVertices
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -112,6 +112,20 @@ constructor(
                 _undoList.add(newPolygon)
             }
         }
+    }
+
+    fun getFreeHandOffset() : Pair<List<Pair<Color,List<Offset>>>,Pair<Float,Float>>{
+        val freeHandOffset = mutableStateListOf<Pair<Color,List<Offset>>>()
+        _undoList.forEach {
+            drawingStroke ->
+            when(drawingStroke){
+                is DrawingStroke.FreeHand -> {
+                    freeHandOffset.add(Pair(drawingStroke.color!!,drawingStroke.points))
+                }
+                else -> {}
+            }
+        }
+        return Pair(freeHandOffset,Pair(_originalHeight.value,_originalWidth.value))
     }
 
     fun undo() {
