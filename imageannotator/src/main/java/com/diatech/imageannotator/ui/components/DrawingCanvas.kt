@@ -32,8 +32,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
-import com.diatech.imageannotator.di.DrawMode
-import com.diatech.imageannotator.di.DrawingStroke
+import com.diatech.imageannotator.drawutils.DrawMode
+import com.diatech.imageannotator.drawutils.DrawingStroke
 import com.diatech.imageannotator.ImageAnnotator
 import com.diatech.imageannotator.helper.drawQuadraticBezier
 

@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.diatech.imageannotator.di
+package com.diatech.imageannotator.drawutils
 
 sealed class DrawMode {
     object FREE_HAND : DrawMode()

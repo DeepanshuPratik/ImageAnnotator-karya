@@ -47,7 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.diatech.imageannotator.ImageAnnotator
 import com.diatech.imageannotator.R
-import com.diatech.imageannotator.di.DrawMode
+import com.diatech.imageannotator.drawutils.DrawMode
 
 @Composable
 fun DrawModeSelector(
@@ -62,7 +62,8 @@ fun DrawModeSelector(
     polygonResourceId: Int = 0,
     enableDisabledDrawing: Boolean = true,
     disabledDrawingResourceId: Int,
-    onSubmit: () -> Unit
+    toggleColorPicker: ()->Unit,
+    drawing: ImageAnnotator
 ) {
     Row(
         modifier
@@ -70,7 +71,8 @@ fun DrawModeSelector(
             .background(Color(0XFFD4EAE5), CircleShape)
             .horizontalScroll(rememberScrollState())
             .wrapContentWidth(Alignment.CenterHorizontally)
-            .padding(4.dp)
+            .padding(4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         if (enableFreeHand) {
             DrawModeButton(drawMode = DrawMode.FREE_HAND, selected = selected, onSelect = onSelect) {
@@ -112,11 +114,12 @@ fun DrawModeSelector(
                 )
             }
         }
-        IconButton(modifier = Modifier.align(Alignment.CenterVertically), onClick = onSubmit) {
-            Icon(
-                modifier = Modifier.size(32.dp),
-                imageVector = Icons.Default.CheckCircle,
-                contentDescription = "Submit"
+        IconButton(onClick = toggleColorPicker) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .background(drawing.color, CircleShape)
+                    .align(Alignment.CenterVertically)
             )
         }
     }
@@ -134,7 +137,7 @@ fun ActionsBar(
     enableDisabledDrawing: Boolean,
     disabledDrawingResourceId: Int,
     polygonSides: Int,
-    onSubmit: () -> Unit
+    toggleColorPicker: ()->Unit
 ) {
     Row(
         modifier
@@ -143,9 +146,8 @@ fun ActionsBar(
         horizontalArrangement = Arrangement.Center
     ) {
         DrawModeSelector(
-            modifier = Modifier
-//                .weight(1f)
-                .wrapContentWidth(),
+            modifier = Modifier,
+//                .weight(1f),
             selected = drawing.drawMode.value,
             onSelect = { drawing.setDrawMode(it) },
             polygonSides = polygonSides,
@@ -156,7 +158,8 @@ fun ActionsBar(
             freeHandResourceId = freeHandResourceId,
             polygonResourceId = polygonResourceId,
             disabledDrawingResourceId = disabledDrawingResourceId,
-            onSubmit = onSubmit
+            toggleColorPicker = toggleColorPicker,
+            drawing = drawing
         )
         UtilityBar(drawing)
     }
@@ -179,12 +182,12 @@ fun UtilityBar(
                 contentDescription = "Redo"
             )
         }
-        IconButton(onClick = { drawing.clear() }) {
-            Image(
-                modifier = Modifier.size(36.dp),
-                painter = painterResource(id = R.drawable.ic_delete_all),
-                contentDescription = "Clear"
-            )
-        }
+//        IconButton(onClick = { drawing.clear() }) {
+//            Image(
+//                modifier = Modifier.size(36.dp),
+//                painter = painterResource(id = R.drawable.ic_delete_all),
+//                contentDescription = "Clear"
+//            )
+//        }
     }
 }
