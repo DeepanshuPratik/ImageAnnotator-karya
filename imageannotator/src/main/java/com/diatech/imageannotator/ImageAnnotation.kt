@@ -23,24 +23,20 @@ package com.diatech.imageannotator
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.drawable.Drawable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -55,15 +51,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.diatech.imageannotator.di.DrawMode
-import com.diatech.imageannotator.di.DrawingStroke
-import com.diatech.imageannotator.ui.components.DrawModeSelector
+import com.diatech.imageannotator.color.colors
+import com.diatech.imageannotator.drawutils.DrawMode
 import com.diatech.imageannotator.ui.components.FreeHandCanvas
 import com.diatech.imageannotator.ui.screens.DisplayCanvas
 import com.diatech.imageannotator.helper.getDrawingBitmap
 import com.diatech.imageannotator.ui.components.ActionsBar
+import com.diatech.imageannotator.ui.components.ColorPicker
+import com.diatech.imageannotator.ui.components.ResponsePairButton
 import com.diatech.imageannotator.ui.components.rememberDrawing
 
 @Composable
@@ -80,18 +76,24 @@ fun ImageAnnotation(
     onDone: (Pair<ImageAnnotator, Bitmap>) -> Unit
 ) {
     val drawing = rememberDrawing()
-    val boxHeightPx by remember { mutableFloatStateOf(0f) }
-    val offset by remember { mutableFloatStateOf(boxHeightPx) }
-    val offsetAnim = animateFloatAsState(targetValue = offset, label = "")
+    var boxHeightPx by remember { mutableFloatStateOf(0f) }
+    var offset by remember { mutableFloatStateOf(boxHeightPx) }
     var scale by remember { mutableFloatStateOf(1f) }
     var zoomOffset by remember { mutableStateOf(Offset.Zero) }
     val viewHeight by drawing.originalHeight.collectAsState()
     val viewWidth by drawing.originalWidth.collectAsState()
+    val toggleColorPicker: () -> Unit = {
+        offset = if (offset == 0f) {
+            boxHeightPx
+        } else {
+            0f
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxHeight()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -166,33 +168,63 @@ fun ImageAnnotation(
                 )
             }
         }
-        ActionsBar(
+        Column(
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .graphicsLayer {
-                    translationY = offsetAnim.value
-                }
-                .padding(4.dp)
                 .fillMaxWidth()
                 .background(
-                    // MaterialTheme.colorScheme.primaryContainer,
                     Color.Transparent,
                     RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
-                ),
-            drawing = drawing,
-            enableFreeHand = enableFreeHand,
-            enablePolygon = enablePolygon,
-            enableDisabledDrawing = enableDisabledDrawing,
-            enableCircle = enableCircle,
-            polygonResourceId = polygonResourceId,
-            freeHandResourceId = freeHandResourceId,
-            disabledDrawingResourceId = disabledDrawingResourceId,
-            polygonSides = polygonSides,
-            onSubmit = {
-                val bmp = getDrawingBitmap(image.width, image.height, drawing.strokes, viewHeight, viewWidth)
-                onDone(Pair(drawing, bmp))
+                )
+                .align(Alignment.CenterHorizontally)
+        ) {
+            ActionsBar(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(8.dp),
+                drawing = drawing,
+                enableFreeHand = enableFreeHand,
+                enablePolygon = enablePolygon,
+                enableDisabledDrawing = enableDisabledDrawing,
+                enableCircle = enableCircle,
+                polygonResourceId = polygonResourceId,
+                freeHandResourceId = freeHandResourceId,
+                disabledDrawingResourceId = disabledDrawingResourceId,
+                polygonSides = polygonSides,
+                toggleColorPicker = toggleColorPicker
+            )
+            if(offset == boxHeightPx){
+                Box(
+                    Modifier.onGloballyPositioned { boxHeightPx = it.size.height.toFloat() }
+                        .align(Alignment.CenterHorizontally)
+                ) {
+                    ColorPicker(
+                        colors = colors,
+                        selectedColor = drawing.color,
+                        onColorPicked = {
+                            drawing.setColor(it)
+                            toggleColorPicker()
+                        }
+                    )
+                }
             }
-        )
+            ResponsePairButton(
+                positiveEnabled = true,
+                positiveResponse = "Submit",
+                negativeEnabled = true,
+                negativeResponse = "Clear All",
+                onNegative = { drawing.clear() },
+                onPositive = {
+                    val bmp = getDrawingBitmap(
+                        image.width,
+                        image.height,
+                        drawing.strokes,
+                        viewHeight,
+                        viewWidth
+                    )
+                    onDone(Pair(drawing, bmp))
+                }
+            )
+        }
     }
 }
 
@@ -204,8 +236,9 @@ fun overlayBitmaps(baseBitmap: Bitmap, overlayBitmap: Bitmap): Bitmap {
     // Draw the base bitmap
     canvas.drawBitmap(baseBitmap, 0f, 0f, null)
 
+    val scaledOverlayBitmap = Bitmap.createScaledBitmap(overlayBitmap, baseBitmap.width, baseBitmap.height, true)
     // Draw the overlay bitmap on top
-    canvas.drawBitmap(overlayBitmap, 0f, 0f, null)
+    canvas.drawBitmap(scaledOverlayBitmap, 0f, 0f, null)
 
     return resultBitmap
 }
