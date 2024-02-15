@@ -28,13 +28,13 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +63,7 @@ fun DrawModeSelector(
     enableDisabledDrawing: Boolean = true,
     disabledDrawingResourceId: Int,
     toggleColorPicker: ()->Unit,
+    toggleThicknessPicker: ()->Unit,
     drawing: ImageAnnotator
 ) {
     Row(
@@ -122,6 +123,19 @@ fun DrawModeSelector(
                     .align(Alignment.CenterVertically)
             )
         }
+        IconButton(onClick = toggleThicknessPicker) {
+            Image(
+                painter =
+                    when (drawing.width) {
+                        4f -> painterResource(id = R.drawable.scribble_low)
+                        8f -> painterResource(id = R.drawable.scribble_mid)
+                        16f -> painterResource(id = R.drawable.scribble_high)
+                        else -> painterResource(id = R.drawable.scribble_low) // Default image resource
+                    },
+                contentDescription = null,
+//                colorFilter = ColorFilter.tint(drawing.color)
+            )
+        }
     }
 }
 
@@ -137,7 +151,8 @@ fun ActionsBar(
     enableDisabledDrawing: Boolean,
     disabledDrawingResourceId: Int,
     polygonSides: Int,
-    toggleColorPicker: ()->Unit
+    toggleColorPicker: ()->Unit,
+    toggleThicknessPicker: ()-> Unit
 ) {
     Row(
         modifier
@@ -159,8 +174,10 @@ fun ActionsBar(
             polygonResourceId = polygonResourceId,
             disabledDrawingResourceId = disabledDrawingResourceId,
             toggleColorPicker = toggleColorPicker,
+            toggleThicknessPicker = toggleThicknessPicker,
             drawing = drawing
         )
+        Spacer(modifier = Modifier.width(16.dp))
         UtilityBar(drawing)
     }
 }
@@ -170,13 +187,24 @@ fun UtilityBar(
     drawing: ImageAnnotator
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = { drawing.undo() }) {
+
+        IconButton(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape),
+            onClick = { drawing.undo() }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.undo),
                 contentDescription = "Redo"
             )
         }
-        IconButton(onClick = { drawing.redo() }) {
+        IconButton(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape),
+            onClick = { drawing.redo() }
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.redo),
                 contentDescription = "Redo"

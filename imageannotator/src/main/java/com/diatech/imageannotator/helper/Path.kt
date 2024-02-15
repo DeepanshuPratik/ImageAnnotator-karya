@@ -39,7 +39,6 @@ fun Path.drawQuadraticBezier(points: List<Offset>) {
 }
 
 fun android.graphics.Path.drawQuadraticBezier(points: List<Offset>, scaleX: Float, scaleY: Float) {
-    val scale = (0.68f)
     if (points.size <= 1) return // need atLeast two points to draw path
     moveTo(points[0].x * scaleX, points[0].y * scaleY) // move the cursor from (0,0) to x0, y0
     var prevPoint = points[1]

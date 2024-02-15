@@ -23,8 +23,10 @@ package com.diatech.imageannotator
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ColorSpace
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -35,12 +37,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -53,9 +57,10 @@ import com.diatech.imageannotator.ui.theme.ImageAnnotatorTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+//        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContent {
             ImageAnnotatorTheme {
-                val bitmap : Bitmap = BitmapFactory.decodeResource(resources, R.drawable.sample)
+                val bitmap : Bitmap = BitmapFactory.decodeResource(resources, R.drawable.sample5)
                 val resultBitmap by remember{
                     mutableStateOf<Bitmap?>(null)
                 }
@@ -64,7 +69,7 @@ class MainActivity : ComponentActivity() {
                 var resultBitmapWithoutImage by remember{
                     mutableStateOf<Bitmap?>(null)
                 }
-                val drawableResourceId = R.drawable.sample
+                val drawableResourceId = R.drawable.sample5
                 val drawable: Drawable? = ContextCompat.getDrawable(LocalContext.current, drawableResourceId)
                 Column (
                     modifier = Modifier

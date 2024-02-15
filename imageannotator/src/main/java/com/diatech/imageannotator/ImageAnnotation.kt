@@ -23,7 +23,6 @@ package com.diatech.imageannotator
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -34,6 +33,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,21 +46,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.diatech.imageannotator.color.colors
 import com.diatech.imageannotator.drawutils.DrawMode
-import com.diatech.imageannotator.ui.components.FreeHandCanvas
-import com.diatech.imageannotator.ui.screens.DisplayCanvas
 import com.diatech.imageannotator.helper.getDrawingBitmap
 import com.diatech.imageannotator.ui.components.ActionsBar
 import com.diatech.imageannotator.ui.components.ColorPicker
+import com.diatech.imageannotator.ui.components.FreeHandCanvas
 import com.diatech.imageannotator.ui.components.ResponsePairButton
+import com.diatech.imageannotator.ui.components.ThicknessPicker
 import com.diatech.imageannotator.ui.components.rememberDrawing
+import com.diatech.imageannotator.ui.screens.DisplayCanvas
 
 @Composable
 fun ImageAnnotation(
@@ -89,141 +92,175 @@ fun ImageAnnotation(
             0f
         }
     }
+    var thicknessVisibility by remember {
+        mutableStateOf(false)
+    }
+    val toggleThicknessPicker : () -> Unit = {
+        thicknessVisibility = !thicknessVisibility
+    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        BoxWithConstraints(
+    Box{
+
+        Image(
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(image.width.toFloat() / image.height.toFloat())
-                .graphicsLayer { clip = true }
-        ) {
-            val state = rememberTransformableState { zoomChange, panChange, _ ->
-                scale = (scale * zoomChange).coerceIn(1f, 5f)
-
-                val extraWidth = (scale - 1) * constraints.maxWidth
-                val extraHeight = (scale - 1) * constraints.maxHeight
-
-                val maxX = extraWidth / 2
-                val maxY = extraHeight / 2
-
-                zoomOffset = Offset(
-                    x = (zoomOffset.x + scale * panChange.x).coerceIn(-maxX, maxX),
-                    y = (zoomOffset.y + scale * panChange.y).coerceIn(-maxY, maxY)
-                )
-            }
-            Image(
-                bitmap = image.asImageBitmap(),
-                modifier = Modifier
-                    .onGloballyPositioned {
-                        drawing.updateOriginalDimensions(
-                            height = it.size.height.toFloat(),
-                            width = it.size.width.toFloat()
-                        )
-                    }
-                    .fillMaxWidth()
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        translationX = zoomOffset.x
-                        translationY = zoomOffset.y
-                    }
-                    .matchParentSize()
-                    .transformable(state),
-                contentDescription = null
-            )
-            if (drawing.drawMode.value != DrawMode.NONE) {
-                FreeHandCanvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(image.width.toFloat() / image.height.toFloat())
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                            translationX = zoomOffset.x
-                            translationY = zoomOffset.y
-                        }
-                        .transformable(state)
-                        .matchParentSize(),
-                    drawing = drawing
-                )
-            } else {
-                DisplayCanvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(image.width.toFloat() / image.height.toFloat())
-                        .graphicsLayer {
-                            scaleX = scale
-                            scaleY = scale
-                            translationX = zoomOffset.x
-                            translationY = zoomOffset.y
-                        }
-                        .transformable(state),
-                    drawing = drawing
-                )
-            }
-        }
+                .fillMaxSize()
+                .alpha(0.3f),
+            painter = painterResource(id = R.drawable.bg_karya),
+            contentDescription = null
+        )
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Color.Transparent,
-                    RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
-                )
-                .align(Alignment.CenterHorizontally)
+                .fillMaxHeight()
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            ActionsBar(
+            BoxWithConstraints(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(8.dp),
-                drawing = drawing,
-                enableFreeHand = enableFreeHand,
-                enablePolygon = enablePolygon,
-                enableDisabledDrawing = enableDisabledDrawing,
-                enableCircle = enableCircle,
-                polygonResourceId = polygonResourceId,
-                freeHandResourceId = freeHandResourceId,
-                disabledDrawingResourceId = disabledDrawingResourceId,
-                polygonSides = polygonSides,
-                toggleColorPicker = toggleColorPicker
-            )
-            if(offset == boxHeightPx){
-                Box(
-                    Modifier.onGloballyPositioned { boxHeightPx = it.size.height.toFloat() }
-                        .align(Alignment.CenterHorizontally)
-                ) {
-                    ColorPicker(
-                        colors = colors,
-                        selectedColor = drawing.color,
-                        onColorPicked = {
-                            drawing.setColor(it)
-                            toggleColorPicker()
+                    .fillMaxWidth()
+                    .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                    .graphicsLayer { clip = true }
+            ) {
+                val state = rememberTransformableState { zoomChange, panChange, _ ->
+                    scale = (scale * zoomChange).coerceIn(1f, 5f)
+
+                    val extraWidth = (scale - 1) * constraints.maxWidth
+                    val extraHeight = (scale - 1) * constraints.maxHeight
+
+                    val maxX = extraWidth / 2
+                    val maxY = extraHeight / 2
+
+                    zoomOffset = Offset(
+                        x = (zoomOffset.x + scale * panChange.x).coerceIn(-maxX, maxX),
+                        y = (zoomOffset.y + scale * panChange.y).coerceIn(-maxY, maxY)
+                    )
+                }
+                Image(
+                    bitmap = image.asImageBitmap(),
+                    modifier = Modifier
+                        .onGloballyPositioned {
+                            drawing.updateOriginalDimensions(
+                                height = it.size.height.toFloat(),
+                                width = it.size.width.toFloat()
+                            )
                         }
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = zoomOffset.x
+                            translationY = zoomOffset.y
+                        }
+                        .matchParentSize()
+                        .transformable(state),
+                    contentDescription = null
+                )
+                if (drawing.drawMode.value != DrawMode.NONE) {
+                    FreeHandCanvas(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                                translationX = zoomOffset.x
+                                translationY = zoomOffset.y
+                            }
+                            .transformable(state)
+                            .matchParentSize(),
+                        drawing = drawing
+                    )
+                } else {
+                    DisplayCanvas(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(image.width.toFloat() / image.height.toFloat())
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                                translationX = zoomOffset.x
+                                translationY = zoomOffset.y
+                            }
+                            .transformable(state),
+                        drawing = drawing
                     )
                 }
             }
-            ResponsePairButton(
-                positiveEnabled = true,
-                positiveResponse = "Submit",
-                negativeEnabled = true,
-                negativeResponse = "Clear All",
-                onNegative = { drawing.clear() },
-                onPositive = {
-                    val bmp = getDrawingBitmap(
-                        image.width,
-                        image.height,
-                        drawing.strokes,
-                        viewHeight,
-                        viewWidth
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Color.White,
+                        RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
                     )
-                    onDone(Pair(drawing, bmp))
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                if(thicknessVisibility){
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(8.dp)
+                    ){
+                        ThicknessPicker(
+                            thicknesses = listOf(4f,8f,16f),
+                            selectedThickness = drawing.width,
+                            onThicknessPicked = {
+                                drawing.setWidth(it)
+                                toggleThicknessPicker()
+                            }
+                        )
+                    }
                 }
-            )
+                if (offset == boxHeightPx) {
+                    Box(
+                        Modifier
+                            .onGloballyPositioned { boxHeightPx = it.size.height.toFloat() }
+                            .align(Alignment.CenterHorizontally)
+                    ) {
+                        ColorPicker(
+                            colors = colors,
+                            selectedColor = drawing.color,
+                            onColorPicked = {
+                                drawing.setColor(it)
+                                toggleColorPicker()
+                            }
+                        )
+                    }
+                }
+                ActionsBar(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(8.dp),
+                    drawing = drawing,
+                    enableFreeHand = enableFreeHand,
+                    enablePolygon = enablePolygon,
+                    enableDisabledDrawing = enableDisabledDrawing,
+                    enableCircle = enableCircle,
+                    polygonResourceId = polygonResourceId,
+                    freeHandResourceId = freeHandResourceId,
+                    disabledDrawingResourceId = disabledDrawingResourceId,
+                    polygonSides = polygonSides,
+                    toggleColorPicker = toggleColorPicker,
+                    toggleThicknessPicker = toggleThicknessPicker
+                )
+                ResponsePairButton(
+                    positiveEnabled = true,
+                    positiveResponse = "Submit",
+                    negativeEnabled = true,
+                    negativeResponse = "Clear All",
+                    onNegative = { drawing.clear() },
+                    onPositive = {
+                        val bmp = getDrawingBitmap(
+                            image.width,
+                            image.height,
+                            drawing.strokes,
+                            viewHeight,
+                            viewWidth
+                        )
+                        onDone(Pair(drawing, bmp))
+                    }
+                )
+            }
         }
     }
 }
