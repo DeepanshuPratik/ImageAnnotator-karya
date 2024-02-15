@@ -114,18 +114,18 @@ constructor(
         }
     }
 
-    fun getFreeHandOffset() : Pair<List<Pair<Color,List<Offset>>>,Pair<Float,Float>>{
-        val freeHandOffset = mutableStateListOf<Pair<Color,List<Offset>>>()
+    fun getFreeHandOffset(): Pair<List<Pair<Color, List<Offset>>>, Pair<Float, Float>> {
+        val freeHandOffset = mutableStateListOf<Pair<Color, List<Offset>>>()
         _undoList.forEach {
-            drawingStroke ->
-            when(drawingStroke){
+                drawingStroke ->
+            when (drawingStroke) {
                 is DrawingStroke.FreeHand -> {
-                    freeHandOffset.add(Pair(drawingStroke.color!!,drawingStroke.points))
+                    freeHandOffset.add(Pair(drawingStroke.color!!, drawingStroke.points))
                 }
                 else -> {}
             }
         }
-        return Pair(freeHandOffset,Pair(_originalHeight.value,_originalWidth.value))
+        return Pair(freeHandOffset, Pair(_originalHeight.value, _originalWidth.value))
     }
 
     fun undo() {
